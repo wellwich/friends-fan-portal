@@ -58,21 +58,38 @@ const videoArraySchema = z.array(videoSchema);
 
 // youtube apiを使って、けものフレンズ３の公式youtubeチャンネルの最新動画を取得
 app.get('/api/kemov-youtube', async (c) => {
-    const YOUTUBE_API_KEY = c.env.YOUTUBE_API_KEY;
-    const youtubeData: any = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${"UCnyE-wD1pE2GZOxA6OHjW9g"
-        }&order=date&maxResults=4&key=${YOUTUBE_API_KEY}`,
-    ).then((response) => {
-        return response.json();
-    });
+    const channelIds = c.req.queries("channelIds");
+    if (!channelIds) {
+        return c.json({ error: "Invalid parameter" }, 400);
+    }
+    // youtube apiを使ってデータを取得
+    const youtubeDataArray = await Promise.all(channelIds.map(async (channelId) => {
+        const YOUTUBE_API_KEY = c.env.YOUTUBE_API_KEY;
+        const youtubeData: any = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&maxResults=4&key=${YOUTUBE_API_KEY}`,
+        ).then((response) => {
+            return response.json();
+        });
 
-    // データ変換処理を修正
-    const items = youtubeData.items.map((item: any) => ({
-        videoId: item.id.videoId,
-        title: item.snippet.title,
-        publishedAt: item.snippet.publishedAt,
-        thumbnail: item.snippet.thumbnails.medium.url // 'default'を指定しているが、より高解像度のサムネイルが必要な場合は 'high' などに変更する
-    }));
+        return youtubeData;
+
+    }
+    ));
+
+    // youtube apiから取得したデータを整形
+    const items = youtubeDataArray.flatMap((youtubeData: any) => {
+        // youtubeData.itemsが存在し、配列であることを確認
+        if (!youtubeData.items || !Array.isArray(youtubeData.items)) {
+            console.error('youtubeData.items is undefined or not an array', youtubeData);
+            return []; // 空の配列を返して、flatMapの処理を続行
+        }
+        return youtubeData.items.map((item: any) => ({
+            videoId: item.id.videoId,
+            title: item.snippet.title,
+            publishedAt: item.snippet.publishedAt,
+            thumbnail: item.snippet.thumbnails.medium.url
+        }));
+    });
 
     const extractData = videoArraySchema.safeParse(items);
 
