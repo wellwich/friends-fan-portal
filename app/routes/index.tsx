@@ -1,6 +1,6 @@
 import { createRoute } from 'honox/factory'
 import KemonoFriends3 from '../islands/KemonoFriends3'
-import Vtuber from '../islands/vtuber'
+import Vtuber from '../islands/Vtuber'
 
 export default createRoute((c) => {
   const name = c.req.query('name') ?? 'Hono'
