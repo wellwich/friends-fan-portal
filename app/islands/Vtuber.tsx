@@ -67,11 +67,9 @@ const Vtuber = () => {
                         <li key={index} class="p-2 m-2 hover:shadow-xl border border-gray-600 rounded-md">
                             <div class="flex flex-col justify-between">
                                 <div
-                                    className="w-24 h-24 rounded-full animate-spin m-auto justify-center items-center flex text-8xl font-bold"
+                                    className="w-24 h-24 rounded-full border-8 border-blue-500 animate-spin m-auto"
                                     style={{ borderTopColor: 'transparent' }}
-                                >
-                                    の
-                                </div>
+                                />
                                 <p class="h-24 overflow-hidden text-base"></p>
                             </div>
                         </li>
@@ -82,11 +80,9 @@ const Vtuber = () => {
                             {vtuber.title === "読み込み中…" ? (
                                 <>
                                     <div
-                                        className="w-24 h-24 rounded-full animate-spin m-auto justify-center items-center flex text-8xl font-bold"
+                                        className="w-24 h-24 rounded-full border-8 border-blue-500 animate-spin m-auto"
                                         style={{ borderTopColor: 'transparent' }}
-                                    >
-                                        の
-                                    </div>
+                                    />
                                     <div
                                         className="h-24"
                                     />
