@@ -1,4 +1,4 @@
-name = "friends-fan-portal"
+name = "friends-portal"
 compatibility_date = "2024-04-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "./dist"
@@ -6,9 +6,13 @@ pages_build_output_dir = "./dist"
 [vars]
 YOUTUBE_API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
-# [[kv_namespaces]]
-# binding = "MY_KV_NAMESPACE"
-# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[[kv_namespaces]]
+binding = "KFV_API_CACHE"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+[[kv_namespaces]]
+binding = "KF3_API_CACHE"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # [[r2_buckets]]
 # binding = "MY_BUCKET"

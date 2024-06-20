@@ -27,6 +27,8 @@ const Vtuber = () => {
     const channelIds = [
         "UCnyE-wD1pE2GZOxA6OHjW9g", // ウサギコウモリ
         "UCabMjG8p6G5xLkPJgEoTnDg", // コヨーテ
+        "UCmYO-WfY7Tasry4D1YB4LJw", // フンボルトペンギン
+        "UCMpw36mXEu3SLsqdrJxUKNA", // シマハイイロギツネ
     ];
 
     useEffect(() => {
@@ -34,7 +36,7 @@ const Vtuber = () => {
         channelIds.forEach(id => params.append("channelIds", id));
         const queryString = params.toString();
         console.log(queryString);
-        fetch(`/api/kemov-youtube?${queryString}`)
+        fetch(`/api/kfv-youtube?${queryString}`)
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`API call failed with status: ${res.status}`);

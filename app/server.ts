@@ -6,6 +6,7 @@ const app = createApp()
 
 showRoutes(app)
 
+// kemono-friends-3の公式サイトからニュースデータを取得
 const newsItemSchema = z.object({
     id: z.number(),
     targetUrl: z.string(),
@@ -20,6 +21,12 @@ const newsSchema = z.object({
 });
 
 app.get('/api/kf3-news', async (c) => {
+    const cacheKey = "kf3-news";
+    const cachedData = await c.env.KF3_API_CACHE.get(cacheKey);
+    if (cachedData) {
+        console.log('cache hit:', cacheKey);
+        return c.json(JSON.parse(cachedData));
+    }
     const url = "https://kemono-friends-3.jp/info/app/info/entries.txt";
     const res = await fetch(url);
     const body = await res.text();
@@ -39,14 +46,16 @@ app.get('/api/kf3-news', async (c) => {
         targetUrl: newsItem.targetUrl
     }));
 
+    const sliceNewsData = newsData.slice(0, 25);
     // ニュースデータを日付の新しい順に並び替え
-    newsData.sort((a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime());
+    sliceNewsData.sort((a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime());
 
-    const sliceNewsData = newsData.slice(0, 10);
-
+    await c.env.KF3_API_CACHE.put(cacheKey, JSON.stringify(sliceNewsData), { expirationTtl: 60 * 60 });
     return c.json(sliceNewsData);
 });
 
+
+// バーチャルYouTuberの公式youtubeチャンネルから最新動画を取得
 const videoSchema = z.object({
     thumbnail: z.string(), // "thumbnailDefault"から"thumbnail"に変更
     title: z.string(),
@@ -57,22 +66,28 @@ const videoSchema = z.object({
 const videoArraySchema = z.array(videoSchema);
 
 // youtube apiを使って、けものフレンズ３の公式youtubeチャンネルの最新動画を取得
-app.get('/api/kemov-youtube', async (c) => {
+app.get('/api/kfv-youtube', async (c) => {
     const channelIds = c.req.queries("channelIds");
     if (!channelIds) {
         return c.json({ error: "Invalid parameter" }, 400);
     }
     // youtube apiを使ってデータを取得
     const youtubeDataArray = await Promise.all(channelIds.map(async (channelId) => {
+        const cacheKey = `kfv-youtube_${channelId}`;
+        const cachedData = await c.env.KFV_API_CACHE.get(cacheKey);
+        if (cachedData) {
+            console.log('cache hit:', cacheKey);
+            return JSON.parse(cachedData);
+        }
         const YOUTUBE_API_KEY = c.env.YOUTUBE_API_KEY;
         const youtubeData: any = await fetch(
-            `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&maxResults=4&key=${YOUTUBE_API_KEY}`,
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&maxResults=16&key=${YOUTUBE_API_KEY}`,
         ).then((response) => {
             return response.json();
         });
-
+        // 取得したデータをキャッシュ
+        await c.env.KFV_API_CACHE.put(cacheKey, JSON.stringify(youtubeData), { expirationTtl: 60 * 60 });
         return youtubeData;
-
     }
     ));
 
@@ -101,7 +116,6 @@ app.get('/api/kemov-youtube', async (c) => {
         console.error(extractData.error);
         return c.json({ error: "Invalid data format" }, 400);
     }
-
     return c.json(extractData.data); // 正しいデータを返す
 });
 
