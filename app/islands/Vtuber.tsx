@@ -25,11 +25,16 @@ const Vtuber = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     const channelIds = [
-        "UCJubINh1j3l3J9K5c5r8DZg", // けものフレンズＶぷろじぇくと
+        "UCnyE-wD1pE2GZOxA6OHjW9g", // ウサギコウモリ
+        "UCabMjG8p6G5xLkPJgEoTnDg", // コヨーテ
     ];
 
     useEffect(() => {
-        fetch('/api/kemov-youtube?' + new URLSearchParams({ channelIds: channelIds.join("?channelIds=") }))
+        const params = new URLSearchParams();
+        channelIds.forEach(id => params.append("channelIds", id));
+        const queryString = params.toString();
+        console.log(queryString);
+        fetch(`/api/kemov-youtube?${queryString}`)
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`API call failed with status: ${res.status}`);
@@ -38,7 +43,6 @@ const Vtuber = () => {
             })
             .then(data => {
                 const result = videoArraySchema.safeParse(data);
-                console.log(result);
                 if (result.success && result.data?.length > 0) {
                     const formattedData = result.data.map((video: any) => ({
                         ...video,
@@ -90,8 +94,8 @@ const Vtuber = () => {
                             ) : (
                                 <>
                                     <a href={"https://www.youtube.com/watch?v=" + vtuber.videoId} target="_blank" class="flex flex-col justify-between">
-                                        <p class="h-24 overflow-hidden text-base">{vtuber.title}</p>
                                         <img src={vtuber.thumbnail} alt={vtuber.title} class="h-24 w-full object-cover" />
+                                        <p class="h-24 overflow-hidden text-base">{vtuber.title}</p>
                                         <span class="text-xs mt-auto">{vtuber.publishedAt.slice(0, 10)}</span>
                                     </a>
                                 </>

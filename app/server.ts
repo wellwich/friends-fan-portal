@@ -91,6 +91,9 @@ app.get('/api/kemov-youtube', async (c) => {
         }));
     });
 
+    // youtube apiから取得したデータを日付の新しい順に並び替え
+    items.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
     const extractData = videoArraySchema.safeParse(items);
 
     if (!extractData.success) {

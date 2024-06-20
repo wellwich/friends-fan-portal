@@ -1,6 +1,6 @@
-# FRIENDS FAN PORTAL
+# FRIENDS PORTAL
 
-**FRIENDS FAN PORTAL** is a web application that allows users to view news and information about the Kemono Friends franchise. The application is built using the [HonoX](https://github.com/honojs/honox) framework and is hosted on  [Cloudflare Pages](https://pages.cloudflare.com/).
+**FRIENDS PORTAL** is a web application that allows users to view news and information about the Kemono Friends franchise. The application is built using the [HonoX](https://github.com/honojs/honox) framework and is hosted on  [Cloudflare Pages](https://pages.cloudflare.com/).
 
 ## Features
 
