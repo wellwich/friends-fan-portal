@@ -43,12 +43,13 @@ app.get('/api/kf3-news', async (c) => {
     const newsData = jsonData.news.map(newsItem => ({
         title: newsItem.title,
         newsDate: newsItem.newsDate,
+        updated: newsItem.updated,
         targetUrl: newsItem.targetUrl
     }));
 
-    const sliceNewsData = newsData.slice(0, 25);
+    const sliceNewsData = newsData;
     // ニュースデータを日付の新しい順に並び替え
-    sliceNewsData.sort((a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime());
+    sliceNewsData.sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
 
     await c.env.KF3_API_CACHE.put(cacheKey, JSON.stringify(sliceNewsData), { expirationTtl: 60 * 60 });
     return c.json(sliceNewsData);

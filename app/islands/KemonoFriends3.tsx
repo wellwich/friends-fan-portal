@@ -3,9 +3,10 @@ import { z } from "zod";
 
 // ニュースデータのスキーマ定義
 const newsSchema = z.object({
+    targetUrl: z.string(),
     title: z.string(),
     newsDate: z.string(),
-    targetUrl: z.string()
+    updated: z.string(),
 });
 
 // ニュースデータの配列のスキーマ

@@ -35,7 +35,6 @@ const Vtuber = () => {
         const params = new URLSearchParams();
         channelIds.forEach(id => params.append("channelIds", id));
         const queryString = params.toString();
-        console.log(queryString);
         fetch(`/api/kfv-youtube?${queryString}`)
             .then(res => {
                 if (!res.ok) {
