@@ -8,7 +8,7 @@ const KemonoFriends3NewsSearch = () => {
     const [displayLimit, setDisplayLimit] = useState(10);
     const [sortOrder, setSortOrder] = useState("desc");
     const [sortField, setSortField] = useState("newsDate");
-
+    const [isSearchVisible, setIsSearchVisible] = useState(false); // 検索欄の表示状態を管理する状態を追加
 
     useEffect(() => {
         fetch('/api/kf3-news')
@@ -37,7 +37,8 @@ const KemonoFriends3NewsSearch = () => {
 
     const handleLoadMore = () => {
         setDisplayLimit(prevLimit => prevLimit + 10);
-        setNewsData(sortNewsData(allNewsData, sortOrder, sortField).slice(0, displayLimit + 10));
+        const filteredNews = allNewsData.filter(news => news.title.includes(searchKeyword));
+        setNewsData(sortNewsData(filteredNews, sortOrder, sortField).slice(0, displayLimit + 10));
     };
 
     const handleSortOrderChange = (event: Event) => {
@@ -101,45 +102,53 @@ const KemonoFriends3NewsSearch = () => {
         }
     };
 
-
-
     const handleSortFieldChange = (event: Event) => {
         if (event.target instanceof HTMLSelectElement) {
             setSortField(event.target.value);
         }
     };
 
+    const handleSearchVisibilityChange = () => {
+        setIsSearchVisible(prev => !prev);
+    };
+
     return (
         <div class="flex flex-col bg-white p-4 m-4 rounded-md">
-            <h2 class="text-3xl font-bold">お知らせ検索</h2>
-            <div>
+            <h2 class="text-3xl font-bold">お知らせ</h2>
+            <button class={`p-2 m-2 border border-gray-600 rounded-md text-white ${isSearchVisible ? "bg-gray-500" : "bg-blue-500"}`} onClick={handleSearchVisibilityChange}>検索欄を{isSearchVisible ? "非表示" : "表示"}</button>
+            {isSearchVisible && (
                 <div>
-                    <label for="sortOrder">ソート順:</label>
-                    <select id="sortOrder" value={sortOrder} onChange={handleSortOrderChange}>
-                        <option value="desc">新しい順</option>
-                        <option value="asc">古い順</option>
-                    </select>
+                    <div>
+                        <label for="sortOrder">ソート順:</label>
+                        <select id="sortOrder" value={sortOrder} onChange={handleSortOrderChange}>
+                            <option value="desc">新しい順</option>
+                            <option value="asc">古い順</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sortField">ソート基準:</label>
+                        <select id="sortField" value={sortField} onChange={handleSortFieldChange}>
+                            <option value="newsDate">投稿日</option>
+                            <option value="updated">更新日</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="radio" id="limit10" name="displayLimit" value="10" checked={displayLimit === 10} onChange={handleDisplayLimitChange} />
+                        <label for="limit10">10件</label>
+                        <input type="radio" id="limit50" name="displayLimit" value="50" checked={displayLimit === 50} onChange={handleDisplayLimitChange} />
+                        <label for="limit50">50件</label>
+                        <input type="radio" id="limit100" name="displayLimit" value="100" checked={displayLimit === 100} onChange={handleDisplayLimitChange} />
+                        <label for="limit100">100件</label>
+                        <input type="radio" id="limitAll" name="displayLimit" value="all" checked={displayLimit === allNewsData.length} onChange={handleDisplayLimitChange} />
+                        <label for="limitAll">全件</label>
+                    </div>
+                    <>
+                        <input type="text" class="p-2 m-2 border border-gray-600 rounded-md" placeholder="検索" value={searchKeyword} onChange={handleSearchChange} />
+                        <button class="p-2 m-2 border border-gray-600 rounded-md bg-blue-500 text-white" onClick={handleSearch}>検索</button>
+                    </>
                 </div>
-                <div>
-                    <label for="sortField">ソート基準:</label>
-                    <select id="sortField" value={sortField} onChange={handleSortFieldChange}>
-                        <option value="newsDate">投稿日</option>
-                        <option value="updated">更新日</option>
-                    </select>
-                </div>
-                <div>
-                    <input type="radio" id="limit10" name="displayLimit" value="10" checked={displayLimit === 10} onChange={handleDisplayLimitChange} />
-                    <label for="limit10">10件</label>
-                    <input type="radio" id="limit50" name="displayLimit" value="50" checked={displayLimit === 50} onChange={handleDisplayLimitChange} />
-                    <label for="limit50">50件</label>
-                    <input type="radio" id="limit100" name="displayLimit" value="100" checked={displayLimit === 100} onChange={handleDisplayLimitChange} />
-                    <label for="limit100">100件</label>
-                    <input type="radio" id="limitAll" name="displayLimit" value="all" checked={displayLimit === allNewsData.length} onChange={handleDisplayLimitChange} />
-                    <label for="limitAll">全件</label>
-                </div>
-            </div>
-            <input type="text" class="p-2 m-2 border border-gray-600 rounded-md" placeholder="検索" value={searchKeyword} onChange={handleSearchChange} />
-            <button class="p-2 m-2 border border-gray-600 rounded-md bg-blue-500 text-white" onClick={handleSearch}>検索</button>
+
+            )}
             <ul class="">
                 {newsData.map((news, index) => (
                     <li key={index} class="p-2 m-2 hover:shadow-xl border border-gray-600 rounded-md">
@@ -150,7 +159,7 @@ const KemonoFriends3NewsSearch = () => {
                     </li>
                 ))}
             </ul>
-            {allNewsData.length > displayLimit && (
+            {allNewsData.filter(news => news.title.includes(searchKeyword)).length > displayLimit && ( // 検索結果が表示件数より多い場合のみボタンを表示
                 <button class="p-2 m-2 border border-gray-600 rounded-md bg-blue-500 text-white" onClick={handleLoadMore}>もっと見る</button>
             )}
         </div>

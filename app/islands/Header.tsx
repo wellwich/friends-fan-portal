@@ -15,7 +15,7 @@ const Header = () => {
             <div class="py-4 flex justify-between items-center">
                 <div class="flex flex-col">
                     <a href="/" class="text-3xl font-bold min-w-min">ふれんずぽーたる</a>
-                    <span>けもフレファンによる、けもフレファンのためのポータルファンサイト</span>
+                    <span>けもフレファンによる、けもフレファンのための非公式ファンサイト</span>
                 </div>
                 <button class="md:hidden" onClick={() => setIsOpen(!isOpen)}>
                     <span class="text-4xl">☰</span>
