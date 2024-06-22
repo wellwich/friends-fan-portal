@@ -1,24 +1,10 @@
 import { showRoutes } from 'hono/dev'
 import { createApp } from 'honox/server'
-import { z } from "zod";
+import { newsArraySchema, videoArraySchema } from './schema'
 
 const app = createApp()
 
 showRoutes(app)
-
-// kemono-friends-3の公式サイトからニュースデータを取得
-const newsItemSchema = z.object({
-    id: z.number(),
-    targetUrl: z.string(),
-    title: z.string(),
-    newsDate: z.string(),
-    updated: z.string(),
-    category: z.string()
-});
-
-const newsSchema = z.object({
-    news: z.array(newsItemSchema)
-});
 
 app.get('/api/kf3-news', async (c) => {
     const cacheKey = "kf3-news";
@@ -30,7 +16,7 @@ app.get('/api/kf3-news', async (c) => {
     const url = "https://kemono-friends-3.jp/info/app/info/entries.txt";
     const res = await fetch(url);
     const body = await res.text();
-    const parseResult = newsSchema.safeParse(JSON.parse(body));
+    const parseResult = newsArraySchema.safeParse(JSON.parse(body));
 
     if (!parseResult.success) {
         // バリデーション失敗
@@ -40,7 +26,7 @@ app.get('/api/kf3-news', async (c) => {
     const jsonData = parseResult.data;
 
     // ニュース項目からタイトル、日付、targetUrlを抽出
-    const newsData = jsonData.news.map(newsItem => ({
+    const newsData = jsonData.map((newsItem) => ({
         title: newsItem.title,
         newsDate: newsItem.newsDate,
         updated: newsItem.updated,
@@ -55,16 +41,6 @@ app.get('/api/kf3-news', async (c) => {
     return c.json(sliceNewsData);
 });
 
-
-// バーチャルYouTuberの公式youtubeチャンネルから最新動画を取得
-const videoSchema = z.object({
-    thumbnail: z.string(), // "thumbnailDefault"から"thumbnail"に変更
-    title: z.string(),
-    publishedAt: z.string(),
-    videoId: z.string()
-});
-
-const videoArraySchema = z.array(videoSchema);
 
 // youtube apiを使って、けものフレンズ３の公式youtubeチャンネルの最新動画を取得
 app.get('/api/kfv-youtube', async (c) => {
@@ -106,6 +82,9 @@ app.get('/api/kfv-youtube', async (c) => {
             thumbnail: item.snippet.thumbnails.medium.url
         }));
     });
+
+    // console.logでvideoIdが取得できているか確認
+    console.log(items);
 
     // youtube apiから取得したデータを日付の新しい順に並び替え
     items.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());

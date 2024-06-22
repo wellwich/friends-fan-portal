@@ -1,18 +1,8 @@
 import { useEffect, useState } from "hono/jsx"; // "hono/jsx"から"react"に変更
-import { z } from "zod";
+import { videoArraySchema } from "../schema";
 import dayjs from "dayjs";
 
 const dummy = "/static/dummy.webp";
-
-// スキーマ定義を更新
-const videoSchema = z.object({
-    thumbnail: z.string(), // "thumbnailDefault"から"thumbnail"に変更
-    title: z.string(),
-    publishedAt: z.string(),
-    videoId: z.string()
-});
-
-const videoArraySchema = z.array(videoSchema);
 
 const Vtuber = () => {
     const defaultArray = [
