@@ -1,5 +1,4 @@
 import { useEffect, useState } from "hono/jsx";
-import { z } from "zod";
 import { newsArraySchema } from "../schema";
 
 const KemonoFriends3 = () => {
@@ -15,7 +14,6 @@ const KemonoFriends3 = () => {
         fetch('/api/kf3-news')
             .then(res => res.json())
             .then(data => {
-                // バリデーションを試みる
                 const result = newsArraySchema.safeParse(data);
                 if (result.success) {
                     // バリデーション成功

@@ -1,14 +1,5 @@
 import { useEffect, useState } from "hono/jsx";
-import { z } from "zod";
-
-const newsSchema = z.object({
-    targetUrl: z.string(),
-    title: z.string(),
-    newsDate: z.string(),
-    updated: z.string(),
-});
-
-const newsArraySchema = z.array(newsSchema);
+import { newsArraySchema } from "../schema";
 
 const KemonoFriends3NewsSearch = () => {
     const [newsData, setNewsData] = useState<Array<{ title: string, newsDate: string, updated: string, targetUrl: string }>>([]);
