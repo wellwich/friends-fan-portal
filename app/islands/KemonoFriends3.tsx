@@ -1,12 +1,12 @@
 import { useEffect, useState } from "hono/jsx";
-import { newsArraySchema } from "../schema";
+import { newsArraySchema, News } from "../schema";
 
 const KemonoFriends3 = () => {
-    const [newsData, setNewsData] = useState<Array<{ title: string, newsDate: string, targetUrl: string }>>([
-        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "" },
-        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "" },
-        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "" },
-        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "" }
+    const [newsData, setNewsData] = useState<Array<News>>([
+        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "", updated: "" },
+        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "", updated: "" },
+        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "", updated: "" },
+        { title: "読み込み中", newsDate: "2015年03月16日", targetUrl: "", updated: "" }
     ]);
     const [isLoading, setIsLoading] = useState(true);
 

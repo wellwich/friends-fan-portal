@@ -1,5 +1,5 @@
 import { useEffect, useState } from "hono/jsx"; // "hono/jsx"から"react"に変更
-import { videoArraySchema } from "../schema";
+import { videoArraySchema, Video } from "../schema";
 import dayjs from "dayjs";
 
 const dummy = "/static/dummy.webp";
@@ -11,7 +11,7 @@ const Vtuber = () => {
         { thumbnail: dummy, title: "読み込み中…", publishedAt: "2015年03月16日", videoId: "" },
         { thumbnail: dummy, title: "読み込み中…", publishedAt: "2015年03月16日", videoId: "" }
     ];
-    const [vtuberData, setVtuberData] = useState<Array<{ thumbnail: string, title: string, publishedAt: string, videoId: string }>>(defaultArray);
+    const [vtuberData, setVtuberData] = useState<Array<Video>>(defaultArray);
     const [isLoading, setIsLoading] = useState(true);
 
     const channelIds = [

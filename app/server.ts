@@ -1,6 +1,9 @@
 import { showRoutes } from 'hono/dev'
 import { createApp } from 'honox/server'
 import { newsArraySchema, videoArraySchema } from './schema'
+import { drizzle } from 'drizzle-orm/d1'
+import { threads, posts } from './db/schema'
+import { desc, eq } from 'drizzle-orm'
 
 const app = createApp()
 
@@ -134,6 +137,40 @@ app.get('/api/kfv-youtube', async (c) => {
         return c.json({ error: "Invalid data format" }, 400);
     }
     return c.json(extractData.data); // 正しいデータを返す
+});
+
+/*
+掲示板
+*/
+
+app.get('/api/threads', async (c) => {
+    const db = drizzle(c.env.DB);
+    const result = await db.select().from(threads).limit(10).orderBy(desc(threads.createdAt)).execute();
+    const threadsData = result.map((record) => {
+        return {
+            id: record.id,
+            title: record.title,
+            createdAt: record.createdAt,
+        }
+    });
+    return c.json(threadsData);
+});
+
+app.get('/api/thread/:threadId', async (c) => {
+    const threadId = c.req.param("threadId");
+    if (!threadId) {
+        return c.json({ error: "Invalid parameter" }, 400);
+    }
+    const threadIdDate = parseInt(threadId, 10);
+    if (isNaN(threadIdDate)) {
+        return c.json({ error: "Invalid parameter" }, 400);
+    }
+    const db = drizzle(c.env.DB);
+    const result = await db.select().from(threads).where(eq(threads.id, threadIdDate)).execute();
+    if (result.length === 0) {
+        return c.json({ error: "Thread not found" }, 404);
+    }
+    return c.json(result);
 });
 
 export default app

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "hono/jsx";
-import { newsArraySchema } from "../schema";
+import { newsArraySchema, News } from "../schema";
 
 const KemonoFriends3NewsSearch = () => {
-    const [newsData, setNewsData] = useState<Array<{ title: string, newsDate: string, updated: string, targetUrl: string }>>([]);
-    const [allNewsData, setAllNewsData] = useState<Array<{ title: string, newsDate: string, updated: string, targetUrl: string }>>([]);
+    const [newsData, setNewsData] = useState<Array<News>>([]);
+    const [allNewsData, setAllNewsData] = useState<Array<News>>([]);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [displayLimit, setDisplayLimit] = useState(10);
     const [sortOrder, setSortOrder] = useState("desc");
