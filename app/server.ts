@@ -3,7 +3,8 @@ import { createApp } from 'honox/server'
 import { newsArraySchema, videoArraySchema } from './schema'
 import { drizzle } from 'drizzle-orm/d1'
 import { threads, posts } from './db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { asc, desc, eq } from 'drizzle-orm'
+import dayjs from 'dayjs'
 
 const app = createApp()
 
@@ -143,6 +144,32 @@ app.get('/api/kfv-youtube', async (c) => {
 掲示板
 */
 
+
+
+const ip2id = (ip: string) => {
+    const UnixTime = new Date().getTime();
+    // IPアドレスをバイト配列に変換
+    const ipParts = ip.split('.').map(part => parseInt(part, 10));
+
+    // 簡単なハッシュ化
+    let hash = 0;
+    for (let i = 0; i < ipParts.length; i++) {
+        hash = (hash << 5) - hash + ipParts[i];
+        hash |= 0; // 32bit整数を維持
+    }
+
+    hash += UnixTime;
+
+    // ハッシュ値を文字列に変換
+    const hashString = Math.abs(hash).toString(36);
+
+    // 9桁のIDを取得（足りない場合は0で埋める）
+    const id = hashString.padStart(9, '0').substring(0, 9);
+
+    return id;
+}
+
+
 app.get('/api/threads', async (c) => {
     const db = drizzle(c.env.DB);
     const result = await db.select().from(threads).limit(10).orderBy(desc(threads.createdAt)).execute();
@@ -156,20 +183,82 @@ app.get('/api/threads', async (c) => {
     return c.json(threadsData);
 });
 
-app.get('/api/thread/:threadId', async (c) => {
-    const threadId = c.req.param("threadId");
+app.get('/api/threads/:threadId', async (c) => {
+    const threadId = parseInt(c.req.param("threadId"));
     if (!threadId) {
         return c.json({ error: "Invalid parameter" }, 400);
     }
-    const threadIdDate = parseInt(threadId, 10);
-    if (isNaN(threadIdDate)) {
+    const db = drizzle(c.env.DB);
+    const result = await db.select()
+        .from(posts)
+        .where(eq(posts.threadId, threadId))
+        .orderBy(asc(posts.createdAt))
+        .execute();
+    const postsData = result.map((record) => {
+        return {
+            postId: record.postId,
+            name: record.name,
+            content: record.content,
+            createdAt: record.createdAt,
+            id: ip2id(record.ipAddr),
+        }
+    });
+    return c.json(postsData);
+});
+
+app.post('/api/new-thread', async (c) => {
+    const body = await c.req.json() as { title: string };
+    if (!body) {
         return c.json({ error: "Invalid parameter" }, 400);
     }
     const db = drizzle(c.env.DB);
-    const result = await db.select().from(threads).where(eq(threads.id, threadIdDate)).execute();
-    if (result.length === 0) {
-        return c.json({ error: "Thread not found" }, 404);
+    if (body.title === undefined) {
+        return c.json({ error: "Invalid parameter" }, 400);
     }
+    // ipからidを生成
+    const ip = c.req.header('cf-connecting-ip') ?? '127.0.0.1';
+    const UnixTime = new Date().getTime();
+
+    const result = await db
+        .insert(threads)
+        .values({
+            id: UnixTime,
+            title: body.title,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            ipAddr: ip,
+        })
+        .returning({ insertedId: threads.id })
+        .execute();
+    return c.json(result);
+});
+
+app.post('/api/new-post', async (c) => {
+    const body = await c.req.json() as { threadId: string, name: string, content: string };
+    if (!body) {
+        return c.json({ error: "Invalid parameter" }, 400);
+    }
+    const ip = c.req.header('cf-connecting-ip') || '127.0.0.1';
+    console.log(ip);
+    const db = drizzle(c.env.DB);
+    if (body.threadId === undefined || body.name === undefined || body.content === undefined) {
+        return c.json({ error: "Invalid parameter" }, 400);
+    }
+    const threadId = parseInt(body.threadId, 10);
+    if (isNaN(threadId)) {
+        return c.json({ error: "Invalid parameter" }, 400);
+    }
+    const result = await db
+        .insert(posts)
+        .values({
+            threadId: threadId,
+            name: body.name,
+            content: body.content,
+            createdAt: new Date().toISOString(),
+            ipAddr: ip,
+        })
+        .returning({ insertedId: posts.postId })
+        .execute();
     return c.json(result);
 });
 

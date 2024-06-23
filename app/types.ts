@@ -6,3 +6,13 @@ export interface ThreadsData {
     ipAddr: string;
     isDeleted: boolean;
 }
+
+export interface PostsData {
+    postId: string;
+    threadId: string;
+    name: string;
+    content: string;
+    createdAt: string;
+    id: string;
+    isDeleted: boolean;
+}

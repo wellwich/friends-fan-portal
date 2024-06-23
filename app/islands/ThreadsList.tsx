@@ -20,7 +20,7 @@ const ThreadsList = () => {
             <ul>
                 {threadData.map((thread, index) => (
                     <li key={index}>
-                        <a href={`/threads/${thread.id}`}>{thread.title}</a>
+                        <a href={`/community/threads/${thread.id}`}>{thread.title}</a>
                     </li>
                 ))}
             </ul>
