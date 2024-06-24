@@ -218,6 +218,7 @@ app.post('/api/new-thread', async (c) => {
     // ipからidを生成
     const ip = c.req.header('cf-connecting-ip') ?? '127.0.0.1';
     const UnixTime = new Date().getTime();
+    const id = ip2id(ip);
 
     const result = await db
         .insert(threads)
@@ -230,7 +231,7 @@ app.post('/api/new-thread', async (c) => {
         })
         .returning({ insertedId: threads.id })
         .execute();
-    return c.json(result);
+    return c.json({ id: id, threadId: result[0].insertedId, title: body.title });
 });
 
 app.post('/api/new-post', async (c) => {
@@ -248,6 +249,7 @@ app.post('/api/new-post', async (c) => {
     if (isNaN(threadId)) {
         return c.json({ error: "Invalid parameter" }, 400);
     }
+    const id = ip2id(ip);
     const result = await db
         .insert(posts)
         .values({
@@ -257,9 +259,10 @@ app.post('/api/new-post', async (c) => {
             createdAt: new Date().toISOString(),
             ipAddr: ip,
         })
-        .returning({ insertedId: posts.postId })
+        .returning({ postId: posts.postId, createdAt: posts.createdAt, name: posts.name, content: posts.content, threadId: posts.threadId })
         .execute();
-    return c.json(result);
+    console.log(result);
+    return c.json({ id: id, postId: result[0].postId, createdAt: result[0].createdAt, name: result[0].name, content: result[0].content, threadId: result[0].threadId });
 });
 
 export default app
