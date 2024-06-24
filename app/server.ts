@@ -5,6 +5,16 @@ import { drizzle } from 'drizzle-orm/d1'
 import { threads, posts } from './db/schema'
 import { asc, desc, eq } from 'drizzle-orm'
 import dayjs from 'dayjs'
+import { HTTPException } from 'hono/http-exception';
+
+type TurnstileResult = {
+    success: boolean;
+    challenge_ts: string;
+    hostname: string;
+    'error-codes': Array<string>;
+    action: string;
+    cdata: string;
+}
 
 const app = createApp()
 
@@ -172,14 +182,32 @@ const ip2id = (ip: string) => {
 
 app.get('/api/threads', async (c) => {
     const db = drizzle(c.env.DB);
-    const result = await db.select().from(threads).limit(10).orderBy(desc(threads.createdAt)).execute();
+    const result = await db.select()
+        .from(threads)
+        .limit(10)
+        .orderBy(desc(threads.createdAt))
+        .execute();
     const threadsData = result.map((record) => {
         return {
             id: record.id,
             title: record.title,
             createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
         }
     });
+    // スレッドの最後の投稿の日付を取得
+    for (let i = 0; i < threadsData.length; i++) {
+        const threadId = threadsData[i].id;
+        const result = await db.select()
+            .from(posts)
+            .where(eq(posts.threadId, threadId))
+            .orderBy(desc(posts.createdAt))
+            .limit(1)
+            .execute();
+        if (result.length > 0) {
+            threadsData[i].updatedAt = result[0].createdAt;
+        }
+    }
     return c.json(threadsData);
 });
 
@@ -263,6 +291,29 @@ app.post('/api/new-post', async (c) => {
         .execute();
     console.log(result);
     return c.json({ id: id, postId: result[0].postId, createdAt: result[0].createdAt, name: result[0].name, content: result[0].content, threadId: result[0].threadId });
+});
+
+
+app.post('/submit', async c => {
+    const body = await c.req.json();
+    const ip = c.req.header('CF-Connecting-IP')
+
+    const formData = new FormData();
+    formData.append('secret', c.env.TURNSTILE_SECRET_KEY);
+    formData.append('response', body.turnstileToken);
+    formData.append('remoteip', ip || '');
+    const turnstileResult = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        body: formData,
+        method: 'POST',
+    });
+    const outcome = await turnstileResult.json<TurnstileResult>();
+    if (!outcome.success) {
+        throw new HTTPException(401, {
+            message: JSON.stringify(outcome)
+        });
+    }
+
+    return new Response('Turnstile token successfuly validated. \n' + JSON.stringify(outcome));
 });
 
 export default app

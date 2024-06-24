@@ -1,8 +1,9 @@
 import { useState, useEffect } from "hono/jsx";
+import { html } from "hono/html";
 import { PostsData } from "../types";
 import dayjs from "dayjs";
 
-const Thread = ({ id }: { id: string }) => {
+const Thread = ({ id, sitekey, secretkey }: { id: string, sitekey: string, secretkey: string }) => {
     const [postData, setPostData] = useState<PostsData[]>([]);
     useEffect(() => {
         const fetchData = async () => {
@@ -80,15 +81,32 @@ const Thread = ({ id }: { id: string }) => {
                 ))}
             </ul>
 
-            <form onSubmit={handleSubmit} class="border  rounded-md">
+            <form onSubmit={handleSubmit} class="border  rounded-md" action="/submit" method="POST">
                 <label class="block">
                     <input type="text" placeholder="名無しさん" value={name} onInput={(e) => setName((e.target as HTMLInputElement).value)} class="mt-1 block w-full border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 border-b m-2 outline-none" />
                 </label>
                 <label class="block">
                     <textarea value={content} onInput={(e) => setContent((e.target as HTMLTextAreaElement).value)} class="mt-1 block w-full border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 m-2 outline-none h-32" />
                 </label>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">書き込む</button>
+                <div class="cf-turnstile" data-sitekey={`${sitekey}`}></div>
+                <button disabled type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">書き込む</button>
             </form>
+            {html`
+                    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=_turnstileCb" async defer></script>
+                    <script>
+                        let turnstileToken = '';
+                        let submitButon;
+                        function _turnstileCb() {
+                            turnstile.render('.cf-turnstile', {
+                                callback: function(token) {
+                                    turnstileToken = token;
+                                    submitButon = document.querySelector("button[type='submit']");
+                                    submitButon.removeAttribute('disabled');
+                                },
+                            })
+                        }
+                    </script>
+                    `}
         </div>
     );
 }

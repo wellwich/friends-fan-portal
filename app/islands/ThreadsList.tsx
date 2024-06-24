@@ -1,5 +1,6 @@
 import { useState, useEffect } from "hono/jsx"
 import { ThreadsData } from "../types";
+import dayjs from "dayjs";
 
 const ThreadsList = () => {
     const [threadData, setThreadData] = useState<ThreadsData[]>([]);
@@ -42,12 +43,21 @@ const ThreadsList = () => {
                     class="p-2 m-2 border border-gray-600 rounded-md text-white bg-blue-500"
                     type="submit">スレッドを作成</button>
             </form>
-            <h1>スレッド一覧</h1>
+            <h1 class="text-2xl font-bold">
+                スレッド一覧
+            </h1>
             <ul>
                 {threadData.map((thread, index) => (
                     <li key={index} class="p-2 m-2 hover:shadow-xl border border-gray-600 rounded-md">
                         <a href={`/community/threads/${thread.id}`} class="flex flex-col">
-                            {thread.title}
+                            <h2 class="text-xl font-bold">
+                                {thread.title}
+                            </h2>
+                            <div class="flex flex-row justify-end">
+                                <span>
+                                    {thread.updatedAt ? `最終更新日時: ${dayjs(thread.updatedAt).format('YYYY/MM/DD HH:mm:ss')}` : 'まだ更新されていません'}
+                                </span>
+                            </div>
                         </a>
                     </li>
                 ))}

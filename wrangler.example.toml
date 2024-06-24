@@ -22,6 +22,7 @@ id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 binding = "DB" # i.e. available in your Worker on env.DB
 database_name = "friends-portal-community-db"
 database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+migrations_dir = "drizzle/migrations"
 
 # [ai]
 # binding = "AI"
