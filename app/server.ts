@@ -231,7 +231,7 @@ app.post('/api/new-thread', async (c) => {
         })
         .returning({ insertedId: threads.id })
         .execute();
-    return c.json({ id: id, threadId: result[0].insertedId, title: body.title });
+    return c.json({ createdBy: id, id: result[0].insertedId, title: body.title });
 });
 
 app.post('/api/new-post', async (c) => {
