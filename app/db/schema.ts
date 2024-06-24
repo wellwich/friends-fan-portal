@@ -1,4 +1,3 @@
-import { is } from "drizzle-orm";
 import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
 
 // 5chのような掲示板を作成する

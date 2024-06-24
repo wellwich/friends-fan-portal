@@ -35,20 +35,24 @@ const ThreadsList = () => {
     };
 
     return (
-        <div>
+        <div class="flex flex-col bg-white p-4 m-4 rounded-lg">
             <form onSubmit={handleSubmit}>
-                <input type="text" value={title} onInput={(e: Event) => setTitle((e.target as HTMLInputElement).value)} />
-                <button type="submit">スレッドを作成</button>
+                <input type="text" value={title} onInput={(e: Event) => setTitle((e.target as HTMLInputElement).value)} class="border border-gray-600 rounded-md p-2 m-2" />
+                <button
+                    class="p-2 m-2 border border-gray-600 rounded-md text-white bg-blue-500"
+                    type="submit">スレッドを作成</button>
             </form>
             <h1>スレッド一覧</h1>
             <ul>
                 {threadData.map((thread, index) => (
-                    <li key={index}>
-                        <a href={`/community/threads/${thread.id}`}>{thread.title}</a>
+                    <li key={index} class="p-2 m-2 hover:shadow-xl border border-gray-600 rounded-md">
+                        <a href={`/community/threads/${thread.id}`} class="flex flex-col">
+                            {thread.title}
+                        </a>
                     </li>
                 ))}
             </ul>
-        </div>
+        </div >
     );
 }
 

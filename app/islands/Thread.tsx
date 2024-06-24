@@ -54,7 +54,7 @@ const Thread = ({ id }: { id: string }) => {
 
 
     return (
-        <div class="flex flex-col bg-white p-4 m-4 rounded-lg shadow">
+        <div class="flex flex-col bg-white p-4 m-4 rounded-lg">
             <ul>
                 {postData.map((post, index) => (
                     <li key={index} class="mb-4 last:mb-0">
