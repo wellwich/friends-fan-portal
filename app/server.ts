@@ -5,7 +5,16 @@ import { drizzle } from 'drizzle-orm/d1'
 import { threads, posts } from './db/schema'
 import { asc, desc, eq } from 'drizzle-orm'
 import dayjs from 'dayjs'
+import { HTTPException } from 'hono/http-exception';
 
+type TurnstileResult = {
+    success: boolean;
+    challenge_ts: string;
+    hostname: string;
+    'error-codes': Array<string>;
+    action: string;
+    cdata: string;
+}
 
 const app = createApp()
 
@@ -254,20 +263,12 @@ app.post('/api/new-thread', async (c) => {
 });
 
 app.post('/api/new-post', async (c) => {
-    const body = await c.req.json() as { threadId: string, name: string, content: string, turnstileToken: string };
+    const body = await c.req.json() as { threadId: string, name: string, content: string };
     if (!body) {
         return c.json({ error: "Invalid parameter" }, 400);
     }
     const ip = c.req.header('cf-connecting-ip') || '127.0.0.1';
     console.log(ip);
-    const formData = new FormData();
-    formData.append('secret', c.env.TURNSTILE_SECRET_KEY);
-    formData.append('response', body.turnstileToken);
-    formData.append('remoteip', ip);
-    const turnstileResult = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        body: formData,
-        method: 'POST',
-    });
     const db = drizzle(c.env.DB);
     if (body.threadId === undefined || body.name === undefined || body.content === undefined) {
         return c.json({ error: "Invalid parameter" }, 400);
@@ -292,50 +293,27 @@ app.post('/api/new-post', async (c) => {
     return c.json({ id: id, postId: result[0].postId, createdAt: result[0].createdAt, name: result[0].name, content: result[0].content, threadId: result[0].threadId });
 });
 
-type ErrorCode =
-    | "missing-input-secret"
-    | "invalid-input-secret"
-    | "missing-input-response"
-    | "invalid-input-response"
-    | "invalid-widget-id"
-    | "invalid-parsed-secret"
-    | "bad-request"
-    | "timeout-or-duplicate"
-    | "internal-error";
 
-type SiteVerify =
-    | {
-        success: true;
-        challenge_ts: string;
-        hostname: string;
-        "error-codes": [];
-        action: string;
-        cdata: string;
-    }
-    | {
-        success: false;
-        "error-codes": ErrorCode[];
-    };
+app.post('/submit', async c => {
+    const body = await c.req.json();
+    const ip = c.req.header('CF-Connecting-IP')
 
-
-app.post('/api/verify', async (c) => {
-    const form = await c.req.formData();
-    const token = form.get("cf-turnstile-response")?.toString();
-    const ip = c.req.header("cf-connecting-ip") || "127.0.0.1";
-    if (!token) {
-        return c.json({ success: false });
-    }
     const formData = new FormData();
-    formData.append("secret", c.env.TURNSTILE_SECRET_KEY);
-    formData.append("response", token);
-    formData.append("remoteip", ip);
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
+    formData.append('secret', c.env.TURNSTILE_SECRET_KEY);
+    formData.append('response', body.turnstileToken);
+    formData.append('remoteip', ip || '');
+    const turnstileResult = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
         body: formData,
+        method: 'POST',
     });
-    const result = await response.json() as SiteVerify;
-    return c.json(result);
-});
+    const outcome = await turnstileResult.json<TurnstileResult>();
+    if (!outcome.success) {
+        throw new HTTPException(401, {
+            message: JSON.stringify(outcome)
+        });
+    }
 
+    return new Response('Turnstile token successfuly validated. \n' + JSON.stringify(outcome));
+});
 
 export default app

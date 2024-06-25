@@ -16,9 +16,6 @@ export default defineConfig(({ mode }) => {
     }
   } else {
     return {
-      ssr: {
-        external: ['react', 'react-dom', 'react-turnstile']
-      },
       build: {
         emptyOutDir: false,
       },
@@ -28,7 +25,7 @@ export default defineConfig(({ mode }) => {
           devServer: { adapter }
         }),
         pages(),
-        //ssg({ entry }),
+        ssg({ entry }),
       ],
     }
   }
