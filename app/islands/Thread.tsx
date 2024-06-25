@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "hono/jsx";
+import { useState, useEffect, useCallback } from "react";
 import { PostsData } from "../types";
 import { html } from "hono/html";
 import dayjs from "dayjs";
+import Turnstile, { useTurnstile } from "react-turnstile"
 
 const Thread = ({ id, sitekey, secretkey }: { id: string, sitekey: string, secretkey: string }) => {
     const [postData, setPostData] = useState<PostsData[]>([]);
@@ -17,51 +18,61 @@ const Thread = ({ id, sitekey, secretkey }: { id: string, sitekey: string, secre
     const [content, setContent] = useState('');
     const [name, setName] = useState('');
 
-    const handleSubmit = async (e: Event) => {
-        e.preventDefault();
-        // FormDataを作成
-        const formData = new FormData(e.target as HTMLFormElement);
-        // 検証リクエストを送信
-        const verifyRes = await fetch('/api/verify', {
-            method: 'POST',
-            body: formData,
-        });
-        const { success } = await verifyRes.json<{ success: boolean }>();
+    const [loading, setLoading] = useState(true);
+    const handleVerify = useCallback(() => {
+        setLoading(false);
+    }, []);
 
-        if (!success) {
-            // 検証失敗の処理
-            console.error('Verification failed');
-            return;
-        }
+    const turnstile = useTurnstile();
 
-        // 検証成功後の新しい投稿データ
-        const newPostData = { threadId: id, name, content };
-        if (!newPostData.content) {
-            // コンテンツが空の場合は投稿しない
-            return;
-        }
+    const handleSubmit = useCallback(
+        async (e: React.FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            // FormDataを作成
+            const formData = new FormData(e.currentTarget);
+            // 検証リクエストを送信
+            const verifyRes = await fetch('/api/verify', {
+                method: 'POST',
+                body: formData,
+            });
+            const { success } = await verifyRes.json<{ success: boolean }>();
 
-        // 新しい投稿リクエストを送信
-        const response = await fetch('/api/new-post', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(newPostData)
-        });
+            if (!success) {
+                // 検証失敗の処理
+                console.error('Verification failed');
+                return;
+            }
 
-        if (response.ok) {
-            // 投稿成功の処理
-            const postJson: PostsData = await response.json();
-            setPostData([...postData, postJson]);
-            // フォームの入力フィールドをクリア
-            setContent('');
-            setName('');
-        } else {
-            // 投稿失敗の処理
-            console.error('Failed to add post');
-        }
-    };
+            // 検証成功後の新しい投稿データ
+            const newPostData = { threadId: id, name, content };
+            if (!newPostData.content) {
+                // コンテンツが空の場合は投稿しない
+                return;
+            }
+
+            // 新しい投稿リクエストを送信
+            const response = await fetch('/api/new-post', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newPostData)
+            });
+
+            if (response.ok) {
+                // 投稿成功の処理
+                const postJson: PostsData = await response.json();
+                setPostData([...postData, postJson]);
+                // フォームの入力フィールドをクリア
+                setContent('');
+                setName('');
+            } else {
+                // 投稿失敗の処理
+                console.error('Failed to add post');
+            }
+        },
+        [turnstile]
+    );
 
     // 改行文字を<br />タグに変換する関数
     const renderContentWithBreaks = (content: string) => {
@@ -108,25 +119,9 @@ const Thread = ({ id, sitekey, secretkey }: { id: string, sitekey: string, secre
                 <label class="block">
                     <textarea value={content} onInput={(e) => setContent((e.target as HTMLTextAreaElement).value)} class="mt-1 block w-full border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 m-2 outline-none h-32" />
                 </label>
-                <div class="cf-turnstile" data-sitekey={`${sitekey}`} />
+                <Turnstile sitekey={sitekey} onVerify={handleVerify} />
                 <button disabled type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">書き込む</button>
             </form>
-            {html`
-                    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=_turnstileCb" async defer></script>
-                    <script>
-                        let turnstileToken = '';
-                        let submitButon;
-                        function _turnstileCb() {
-                            turnstile.render('.cf-turnstile', {
-                                callback: function(token) {
-                                    turnstileToken = token;
-                                    submitButon = document.querySelector("button[type='submit']");
-                                    submitButon.removeAttribute('disabled');
-                                },
-                            })
-                        }
-                    </script>
-                    `}
         </div>
     );
 }

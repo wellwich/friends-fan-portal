@@ -1,9 +1,12 @@
 import { } from 'hono'
 import { KVNamespace } from '@cloudflare/workers-types/experimental'
 import { D1Database } from '@cloudflare/workers-types/experimental'
+import "@hono/react-renderer"
 
-type Head = {
-  title?: string
+declare module '@hono/react-renderer' {
+  interface Props {
+    title?: string
+  }
 }
 
 declare module 'hono' {

@@ -1,11 +1,12 @@
 import { Style } from 'hono/css'
 import { jsxRenderer } from 'hono/jsx-renderer'
+import { reactRenderer } from '@hono/react-renderer'
 import { Script } from 'honox/server'
 import { Link } from 'honox/server'
 import Footer from '../components/Footer'
 import Header from '../islands/Header'
 
-export default jsxRenderer(({ children, title }) => {
+export default reactRenderer(({ children, title }) => {
   return (
     <html lang="ja">
       <head>
