@@ -5,6 +5,8 @@ pages_build_output_dir = "./dist"
 
 [vars]
 YOUTUBE_API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+TURNSTILE_SITE_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+TURNSTILE_SECRET_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 [[kv_namespaces]]
 binding = "KFV_API_CACHE"
@@ -19,7 +21,7 @@ id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 # bucket_name = "my-bucket"
 
 [[d1_databases]]
-binding = "DB" # i.e. available in your Worker on env.DB
+binding = "DB"                                       # i.e. available in your Worker on env.DB
 database_name = "friends-portal-community-db"
 database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 migrations_dir = "drizzle/migrations"
