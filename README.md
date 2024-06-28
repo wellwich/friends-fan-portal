@@ -8,6 +8,14 @@
 - View a Kemono Friends 3 News
 - View a Kemono Friends V Project Information
 - Link to fan sites
+- Use the BBS
+
+## Technologies
+
+- [HonoX](https://github.com/honojs/honox)
+- [Cloudflare Pages](https://pages.cloudflare.com/)
+- [Cloudflare D1](https://developers.cloudflare.com/d1)
+- [Drizzle ORM](https://github.com/drizzle-team/drizzle-orm)
 
 ## Installation
 
