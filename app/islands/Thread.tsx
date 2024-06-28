@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "hono/jsx";
 import { PostsData } from "../types";
 import dayjs from "dayjs";
 import { Turnstile } from "@wellwich/hono-turnstile"
-import type { TurnstileInstance } from "@wellwich/hono-turnstile";
 
 const Thread = ({ id, sitekey }: { id: string, sitekey: string }) => {
     const [postData, setPostData] = useState<PostsData[]>([]);
@@ -17,8 +16,6 @@ const Thread = ({ id, sitekey }: { id: string, sitekey: string }) => {
         }
         fetchData();
     }, [id]); // idを依存配列に追加
-
-    const turnstileRef = useRef<TurnstileInstance>(null);
 
 
     const [content, setContent] = useState('');
@@ -106,7 +103,7 @@ const Thread = ({ id, sitekey }: { id: string, sitekey: string }) => {
                 ))}
             </ul>
 
-            <form onSubmit={handleSubmit} ref={formRef} class="border  rounded-md" action="/submit" method="POST">
+            <form onSubmit={handleSubmit} ref={formRef} class="border  rounded-md">
                 <label class="block">
                     <input type="text" placeholder="名無しさん" value={name} onInput={(e) => setName((e.target as HTMLInputElement).value)} class="mt-1 block w-full border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 border-b m-2 outline-none" />
                 </label>
