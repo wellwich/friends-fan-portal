@@ -158,6 +158,8 @@ app.get('/api/kfv-youtube', async (c) => {
 
 const ip2id = (ip: string) => {
     const UnixTime = new Date().getTime();
+    const UnixDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    console.log(UnixTime);
     // IPアドレスをバイト配列に変換
     const ipParts = ip.split('.').map(part => parseInt(part, 10));
 
@@ -168,7 +170,7 @@ const ip2id = (ip: string) => {
         hash |= 0; // 32bit整数を維持
     }
 
-    hash += UnixTime;
+    hash *= parseInt(UnixDate, 10);
 
     // ハッシュ値を文字列に変換
     const hashString = Math.abs(hash).toString(36);
@@ -294,26 +296,28 @@ app.post('/api/new-post', async (c) => {
 });
 
 
-app.post('/submit', async c => {
-    const body = await c.req.json();
-    const ip = c.req.header('CF-Connecting-IP')
-
-    const formData = new FormData();
-    formData.append('secret', c.env.TURNSTILE_SECRET_KEY);
-    formData.append('response', body.turnstileToken);
-    formData.append('remoteip', ip || '');
-    const turnstileResult = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        body: formData,
+app.post('/api/turnstile', async (c) => {
+    const body = await c.req.json() as { token: string };
+    if (!body) {
+        return c.json({ error: "Invalid parameter" }, 400);
+    }
+    const token = body.token;
+    const secret = c.env.TURNSTILE_SECRET_KEY;
+    const siteKey = c.env.TURNSTILE_SITE_KEY;
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `secret=${secret}&response=${token}&sitekey=${siteKey}`
     });
-    const outcome = await turnstileResult.json<TurnstileResult>();
-    if (!outcome.success) {
+    const data = await response.json() as TurnstileResult;
+    if (!data.success) {
         throw new HTTPException(401, {
-            message: JSON.stringify(outcome)
+            message: JSON.stringify(data),
         });
     }
-
-    return new Response('Turnstile token successfuly validated. \n' + JSON.stringify(outcome));
+    return c.json({ success: true });
 });
 
 export default app

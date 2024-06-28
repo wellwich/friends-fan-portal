@@ -1,10 +1,13 @@
-import { useState, useEffect } from "hono/jsx";
-import { html } from "hono/html";
+import { useState, useEffect, useRef } from "hono/jsx";
 import { PostsData } from "../types";
 import dayjs from "dayjs";
+import { Turnstile } from "../lib/lib";
+import type { TurnstileInstance } from "../lib";
 
-const Thread = ({ id, sitekey, secretkey }: { id: string, sitekey: string, secretkey: string }) => {
+const Thread = ({ id, sitekey }: { id: string, sitekey: string }) => {
     const [postData, setPostData] = useState<PostsData[]>([]);
+    const formRef = useRef<HTMLFormElement>(null);
+
     useEffect(() => {
         const fetchData = async () => {
             const response = await fetch(`/api/threads/${id}`);
@@ -15,10 +18,32 @@ const Thread = ({ id, sitekey, secretkey }: { id: string, sitekey: string, secre
         fetchData();
     }, [id]); // idを依存配列に追加
 
+    const turnstileRef = useRef<TurnstileInstance>(null);
+
+
     const [content, setContent] = useState('');
     const [name, setName] = useState('');
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
+
+        if (!formRef.current) return;
+        const formData = new FormData(formRef.current);
+        const token = formData.get('cf-turnstile-response');
+
+        const res = await fetch('/api/turnstile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token })
+        });
+
+        const data = await res.json() as { success: boolean };
+        if (!data.success) {
+            console.error('Failed to validate token');
+            return;
+        }
+
         const newPostData = { threadId: id, name, content }; // 変数名を変更
         if (!newPostData.content) {
             return;
@@ -81,15 +106,20 @@ const Thread = ({ id, sitekey, secretkey }: { id: string, sitekey: string, secre
                 ))}
             </ul>
 
-            <form onSubmit={handleSubmit} class="border  rounded-md" action="/submit" method="POST">
+            <form onSubmit={handleSubmit} ref={formRef} class="border  rounded-md" action="/submit" method="POST">
                 <label class="block">
                     <input type="text" placeholder="名無しさん" value={name} onInput={(e) => setName((e.target as HTMLInputElement).value)} class="mt-1 block w-full border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 border-b m-2 outline-none" />
                 </label>
                 <label class="block">
                     <textarea value={content} onInput={(e) => setContent((e.target as HTMLTextAreaElement).value)} class="mt-1 block w-full border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 m-2 outline-none h-32" />
                 </label>
-                <div class="cf-turnstile" data-sitekey={`${sitekey}`}></div>
-                <button disabled type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">書き込む</button>
+                <Turnstile siteKey={sitekey} />
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+                >
+                    書き込む
+                </button>
             </form>
         </div>
     );

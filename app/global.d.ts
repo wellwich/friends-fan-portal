@@ -26,3 +26,13 @@ declare module 'hono' {
     (content: string | Promise<string>, head?: Head): Response | Promise<Response>
   }
 }
+
+declare namespace turnstile {
+  function render(selector: string, options: { callback: (token: string) => void }): void;
+}
+
+declare global {
+  interface Window {
+    _turnstileCb: () => void;
+  }
+}
