@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "hono/jsx";
 import { PostsData } from "../types";
 import dayjs from "dayjs";
-import { Turnstile } from "../lib/lib";
-import type { TurnstileInstance } from "../lib";
+import { Turnstile } from "@wellwich/honox-turnstile"
+import type { TurnstileInstance } from "@wellwich/honox-turnstile";
 
 const Thread = ({ id, sitekey }: { id: string, sitekey: string }) => {
     const [postData, setPostData] = useState<PostsData[]>([]);
